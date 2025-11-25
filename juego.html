@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aventura Natural - Jonathan Torres</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+
+        :root {
+            --wood: #D4A373;
+            --cream: #FFF8E7;
+            --accent: #FF595E;
+            --green: #8AC926;
+            --blue: #1982C4;
+            --yellow: #FFCA3A;
+        }
+
+        body {
+            font-family: 'Fredoka One', cursive;
+            margin: 0;
+            height: 100vh;
+            background-color: #ADE8F4;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(255,255,255,0.8) 10%, transparent 40%),
+                radial-gradient(circle at 80% 10%, rgba(255,255,255,0.6) 10%, transparent 30%),
+                linear-gradient(175deg, transparent 50%, #90BE6D 50%),
+                linear-gradient(195deg, transparent 60%, #7CB518 60%);
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- PANTALLA DE INICIO --- */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.5s;
+        }
+        
+        .start-title {
+            color: white; font-size: 4rem; margin-bottom: 20px;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.5); text-align: center;
+            animation: floatTitle 3s infinite ease-in-out;
+        }
+        @keyframes floatTitle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .start-btn {
+            font-family: 'Fredoka One', cursive; font-size: 2.5rem; padding: 20px 60px;
+            background: linear-gradient(to bottom, #8AC926, #6da316); color: white;
+            border: 6px solid white; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 10px 0 #4f7712, 0 20px 20px rgba(0,0,0,0.3);
+            animation: pulse 1.5s infinite; transition: transform 0.2s;
+        }
+        .start-btn:hover { transform: scale(1.1); filter: brightness(1.1); }
+        .start-btn:active { transform: translateY(5px); box-shadow: 0 5px 0 #4f7712; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* --- MARCO PRINCIPAL --- */
+        #game-frame {
+            background-color: var(--cream);
+            border: 10px solid var(--wood); border-radius: 35px;
+            padding: 15px; width: 90%; max-width: 900px; height: 85vh;
+            position: relative; box-shadow: 0 25px 30px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; align-items: center; z-index: 10;
+        }
+
+        /* --- BOTONES DE INTERFAZ --- */
+        .icon-btn {
+            position: absolute; top: -35px; width: 70px; height: 70px;
+            border: 5px solid #fff; border-radius: 50%; font-size: 2rem;
+            cursor: pointer; box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s; display: flex; justify-content: center; align-items: center;
+            color: white; z-index: 100;
+        }
+        .icon-btn:hover { transform: scale(1.1); }
+        #exit-btn-global { left: 20px; background: var(--accent); }
+        #music-btn-global { right: 20px; background: #8AC926; }
+        .muted { background: #FFCA3A !important; }
+
+        .back-btn {
+            position: absolute; top: 20px; left: 20px;
+            background: var(--accent); color: white; border: none; border-radius: 50%;
+            width: 50px; height: 50px; font-size: 1.8rem; cursor: pointer;
+            box-shadow: 0 5px 0 #9e2a2c; z-index: 100;
+        }
+        .back-btn:active { transform: translateY(5px); box-shadow: none; }
+
+        h1 { 
+            color: var(--accent); font-size: 2.5rem; margin: 30px 0 10px 0; 
+            text-shadow: 3px 3px 0px #fff; text-align: center; line-height: 1.1;
+        }
+
+        /* --- MENÚ --- */
+        .menu-container {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;
+            width: 100%; height: 100%; overflow-y: auto; padding: 10px; padding-bottom: 60px;
+        }
+        .menu-container::-webkit-scrollbar { width: 12px; }
+        .menu-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 10px; }
+        .menu-container::-webkit-scrollbar-thumb { background: var(--wood); border-radius: 10px; border: 2px solid #fff; }
+
+        .menu-btn {
+            background: white; border: 4px solid var(--wood); border-radius: 20px;
+            width: 130px; height: 120px; cursor: pointer; transition: transform 0.2s;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 6px 0 #b08d55; margin: 5px; flex-shrink: 0;
+        }
+        .menu-btn:hover { transform: scale(1.05); background: #fffbe6; }
+        .menu-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .menu-emoji { font-size: 3rem; margin-bottom: 5px; }
+        .menu-text { font-size: 1.1rem; color: #555; text-align: center; line-height: 1; }
+
+        .btn-shadows { border-color: #5D576B; color: #5D576B; }
+        .btn-sounds { border-color: #FFCA3A; color: #d4a017; }
+        .btn-habitats { border-color: #8AC926; color: #6a9e16; }
+        .btn-count { border-color: #1982C4; color: #105f91; }
+        .btn-memory { border-color: #6A4C93; color: #4e366e; }
+        .btn-colors { border-color: #FF595E; color: #c42f34; }
+        .btn-food { border-color: #F4A261; color: #ce7e3e; }
+
+        /* --- MARCA DE AGUA --- */
+        .watermark {
+            margin-top: auto; margin-bottom: 10px;
+            font-family: 'Fredoka One', cursive; font-size: 1rem;
+            background: linear-gradient(45deg, #FF9F1C, #FF4040);
+            color: white; padding: 12px 25px; border-radius: 50px;
+            border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-align: center; animation: floatWatermark 3s ease-in-out infinite;
+            z-index: 5;
+        }
+        @keyframes floatWatermark { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-5px); } }
+        .watermark strong { color: #FFD700; text-shadow: 1px 1px 0 #d45d00; font-size: 1.1rem; }
+
+        /* --- PANTALLAS DE JUEGO --- */
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; }
+        .active { display: flex; animation: zoomIn 0.4s; }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .options-container {
+            display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
+            margin-top: 15px; width: 100%; overflow-y: auto; padding-bottom: 20px;
+        }
+        .options-container::-webkit-scrollbar { width: 10px; }
+        .options-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 5px; }
+
+        .card-btn {
+            font-size: 4rem; background: white; padding: 10px 20px; border-radius: 20px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1); cursor: pointer; border: 3px solid #eee;
+            transition: 0.2s; min-width: 90px; text-align: center;
+        }
+        .card-btn:hover { transform: scale(1.1); background-color: #e0fbfc; }
+
+        .big-display {
+            font-size: 8rem; margin: 10px;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2));
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        .shadow-black { filter: brightness(0); opacity: 0.8; }
+        
+        .color-blob {
+            width: 80px; height: 80px; border-radius: 50%;
+            border: 6px solid rgba(255,255,255,0.8); box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+
+        /* --- MODAL VICTORIA --- */
+        #victory-modal {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95); z-index: 200;
+            flex-direction: column; justify-content: center; align-items: center;
+            border-radius: 25px; animation: fadeIn 0.3s;
+        }
+        #victory-modal h2 { font-size: 3rem; color: #8AC926; text-align: center; margin: 0; }
+        #victory-modal p { font-size: 1.5rem; color: #555; }
+        #victory-modal .trophy { font-size: 6rem; animation: pop 0.5s infinite alternate; }
+        @keyframes pop { from { transform: scale(1); } to { transform: scale(1.2); } }
+
+        /* ESTILO PARA LA X DE CERRAR */
+        .close-modal-x {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 3rem;
+            color: #bbb;
+            cursor: pointer;
+            font-family: sans-serif;
+            transition: color 0.2s;
+        }
+        .close-modal-x:hover {
+            color: #FF595E;
+        }
+    </style>
+</head>
+<body onclick="ensureAudioContext()">
+
+<audio id="bg-music" loop>
+    <source src="https://upload.wikimedia.org/wikipedia/commons/4/43/Forest_birds_ambience.ogg" type="audio/ogg">
+    <source src="https://actions.google.com/sounds/v1/ambiences/forest_morning.ogg" type="audio/ogg">
+</audio>
+
+<div id="start-overlay">
+    <div class="start-title">Aventura Natural</div>
+    <div style="font-size: 1.2rem; color: white; margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 20px;">
+        Jonathan Torres - Educ. Inicial
+    </div>
+    <button class="start-btn" onclick="enterGame()">▶ JUGAR</button>
+</div>
+
+<div id="game-frame">
+    <button id="exit-btn-global" class="icon-btn" onclick="exitGame()" title="Salir al Inicio">🚪</button>
+    <button id="music-btn-global" class="icon-btn music-btn" onclick="toggleMusic()" title="Silenciar/Activar">🔊</button>
+
+    <div id="menu-screen" class="screen active">
+        <h1>🦁 Aventura Natural 🌳</h1>
+        
+        <div class="menu-container">
+            <div class="menu-btn" style="border-color:#5D576B; color:#5D576B;" onclick="startGame('shadows')">
+                <div class="menu-emoji">🌑</div>
+                <div class="menu-text">Sombras</div>
+            </div>
+            <div class="menu-btn" style="border-color:#FFCA3A; color:#d4a017;" onclick="startGame('sounds')">
+                <div class="menu-emoji">🎵</div>
+                <div class="menu-text">Sonidos</div>
+            </div>
+            <div class="menu-btn" style="border-color:#8AC926; color:#6a9e16;" onclick="startGame('habitats')">
+                <div class="menu-emoji">🌍</div>
+                <div class="menu-text">Hábitats</div>
+            </div>
+            <div class="menu-btn" style="border-color:#1982C4; color:#105f91;" onclick="startGame('counting')">
+                <div class="menu-emoji">🔢</div>
+                <div class="menu-text">Contar</div>
+            </div>
+            <div class="menu-btn" style="border-color:#6A4C93; color:#4e366e;" onclick="startGame('memory')">
+                <div class="menu-emoji">🧠</div>
+                <div class="menu-text">Memoria</div>
+            </div>
+            <div class="menu-btn" style="border-color:#FF595E; color:#c42f34;" onclick="startGame('colors')">
+                <div class="menu-emoji">🎨</div>
+                <div class="menu-text">Colores</div>
+            </div>
+            <div class="menu-btn" style="border-color:#F4A261; color:#ce7e3e;" onclick="startGame('food')">
+                <div class="menu-emoji">🥣</div>
+                <div class="menu-text">Comida</div>
+            </div>
+        </div>
+
+        <div class="watermark">
+            Elaborado por <strong>Jonathan Torres</strong><br>
+            <span style="font-size: 0.85em; opacity: 0.9;">4to Semestre Educación Inicial</span>
+        </div>
+    </div>
+
+    <div id="game-play-screen" class="screen">
+        <button class="back-btn" onclick="goMenu()">⬅</button>
+        <h2 id="game-title" style="font-size: 2rem; color: #555; text-align:center;">Pregunta</h2>
+        <div id="game-display" class="big-display"></div>
+        <button id="audio-replay" onclick="repeatQuestion()" style="display:none; background:#FFCA3A; border:none; border-radius:50%; width:60px; height:60px; font-size:1.5rem; cursor:pointer; margin-bottom:10px; box-shadow: 0 4px 0 #c49a2c;">🔊</button>
+        <div id="options-box" class="options-container"></div>
+    </div>
+
+    <div id="memory-screen" class="screen">
+        <button class="back-btn" onclick="goMenu()">⬅</button>
+        <h2 style="color:var(--blue)">Busca las Parejas</h2>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top:20px;" id="memory-board"></div>
+    </div>
+
+    <div id="victory-modal">
+        <div class="close-modal-x" onclick="closeModal()">✖</div> <div class="trophy">🏆</div>
+        <h2>¡Felicidades!</h2>
+        <p>¡Has ganado!</p>
+        <button onclick="closeModal()" style="font-size:1.5rem; padding:10px 30px; background:var(--green); color:white; border:none; border-radius:50px; cursor:pointer; margin-top:20px; box-shadow: 0 5px 0 #5e8c1a;">Seguir jugando ➡</button>
+    </div>
+</div>
+
+<script>
+    /* --- CONFIGURACIÓN DE DATOS --- */
+    const Colors = {
+        ORANGE: "#FF9F1C", GREEN: "#7CB518", PINK: "#FFC8DD", GREY: "#ADB5BD",
+        BROWN: "#8D6E63", WHITE: "#FFFFFF", PURPLE: "#9D4EDD", YELLOW: "#FFD60A", BLUE: "#0077B6"
+    };
+
+    const db = [
+        { emoji: "🦁", name: "León", type: "tierra", sound: "Grrr", color: Colors.ORANGE, colorName: "Naranja", food: "🥩", foodName: "Carne" },
+        { emoji: "🐸", name: "Rana", type: "tierra", sound: "Croac", color: Colors.GREEN, colorName: "Verde", food: "🪰", foodName: "Insectos" },
+        { emoji: "🐷", name: "Cerdo", type: "tierra", sound: "Oink", color: Colors.PINK, colorName: "Rosado", food: "🍎", foodName: "Manzanas" },
+        { emoji: "🐱", name: "Gato", type: "tierra", sound: "Miau", color: Colors.GREY, colorName: "Gris", food: "🐟", foodName: "Pescado" },
+        { emoji: "🐶", name: "Perro", type: "tierra", sound: "Guau", color: Colors.BROWN, colorName: "Café", food: "🦴", foodName: "Hueso" },
+        { emoji: "🐮", name: "Vaca", type: "tierra", sound: "Muuu", color: Colors.WHITE, colorName: "Blanco", food: "🌿", foodName: "Pasto" },
+        { emoji: "🐒", name: "Mono", type: "tierra", sound: "U uh a ah", color: Colors.BROWN, colorName: "Café", food: "🍌", foodName: "Bananas" },
+        { emoji: "🐙", name: "Pulpo", type: "agua", sound: "Glu glu", color: Colors.PURPLE, colorName: "Morado", food: "🦀", foodName: "Cangrejos" },
+        { emoji: "🐥", name: "Pollito", type: "tierra", sound: "Pío pío", color: Colors.YELLOW, colorName: "Amarillo", food: "🌽", foodName: "Maíz" },
+        { emoji: "🐘", name: "Elefante", type: "tierra", sound: "Pruuu", color: Colors.GREY, colorName: "Gris", food: "🥜", foodName: "Maní" },
+        { emoji: "🐝", name: "Abeja", type: "aire", sound: "Bzzzz", color: Colors.YELLOW, colorName: "Amarillo", food: "🌸", foodName: "Flores" },
+        { emoji: "🐳", name: "Ballena", type: "agua", sound: "Ooooo", color: Colors.BLUE, colorName: "Azul", food: "🦐", foodName: "Camarones" },
+        { emoji: "🐭", name: "Ratón", type: "tierra", sound: "iii iii", color: Colors.GREY, colorName: "Gris", food: "🧀", foodName: "Queso" },
+        { emoji: "🐰", name: "Conejo", type: "tierra", sound: "hic hic", color: Colors.WHITE, colorName: "Blanco", food: "🥕", foodName: "Zanahoria" },
+        { emoji: "🐢", name: "Tortuga", type: "agua", sound: "...", color: Colors.GREEN, colorName: "Verde", food: "🥬", foodName: "Lechuga" }
+    ];
+
+    let currentGameMode = "";
+    let currentItem = null;
+    let synth = window.speechSynthesis;
+    let musicPlaying = false;
+
+    /* --- GESTIÓN DE AUDIO --- */
+    function ensureAudioContext() {
+        if(!musicPlaying) {
+            const audio = document.getElementById('bg-music');
+            audio.volume = 0.2;
+            audio.play().then(() => {
+                 musicPlaying = true;
+                 updateMusicBtn();
+            }).catch(e => console.log("Esperando interacción..."));
+        }
+    }
+
+    function enterGame() {
+        const overlay = document.getElementById('start-overlay');
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.display = 'none', 600);
+        activateMusic();
+        playBirdTweet(); 
+    }
+
+    function exitGame() {
+        const overlay = document.getElementById('start-overlay');
+        overlay.style.display = 'flex';
+        setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+        
+        const audio = document.getElementById('bg-music');
+        audio.pause(); audio.currentTime = 0;
+        musicPlaying = false;
+        updateMusicBtn();
+        goMenu();
+    }
+
+    function activateMusic() {
+        const audio = document.getElementById('bg-music');
+        audio.volume = 0.2; 
+        let playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(_ => {
+                musicPlaying = true;
+                updateMusicBtn();
+            }).catch(error => { console.log("Audio bloqueado: " + error); });
+        }
+    }
+
+    function toggleMusic() {
+        const audio = document.getElementById('bg-music');
+        playBirdTweet();
+        if (musicPlaying) {
+            audio.pause();
+            musicPlaying = false;
+        } else {
+            audio.play();
+            musicPlaying = true;
+        }
+        updateMusicBtn();
+    }
+
+    function updateMusicBtn() {
+        const btn = document.getElementById('music-btn-global');
+        if (musicPlaying) {
+            btn.innerHTML = "🔊";
+            btn.classList.remove('muted');
+        } else {
+            btn.innerHTML = "🔇";
+            btn.classList.add('muted');
+        }
+    }
+
+    function playBirdTweet() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(2500, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.1);
+    }
+
+    function speak(text) {
+        if (synth.speaking) synth.cancel();
+        setTimeout(() => {
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = "es-ES"; utter.rate = 0.9; utter.pitch = 1.1;
+            synth.speak(utter);
+        }, 100);
+    }
+
+    /* --- NAVEGACIÓN --- */
+    function goMenu() {
+        playBirdTweet();
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('menu-screen').classList.add('active');
+        document.getElementById('exit-btn-global').style.display = 'flex';
+    }
+
+    function showGameScreen() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('game-play-screen').classList.add('active');
+        document.getElementById('exit-btn-global').style.display = 'none';
+    }
+
+    /* --- LÓGICA DE JUEGOS --- */
+    function startGame(mode) {
+        playBirdTweet();
+        currentGameMode = mode;
+        if (mode === 'memory') startMemory();
+        else { showGameScreen(); loadNextLevel(); }
+    }
+
+    function loadNextLevel() {
+        const display = document.getElementById('game-display');
+        const optsBox = document.getElementById('options-box');
+        const title = document.getElementById('game-title');
+        const replayBtn = document.getElementById('audio-replay');
+        
+        display.className = "big-display"; display.style = "";
+        optsBox.innerHTML = ""; replayBtn.style.display = "none";
+
+        let item = db[Math.floor(Math.random() * db.length)];
+        while(currentItem && item.name === currentItem.name && db.length > 1) {
+             item = db[Math.floor(Math.random() * db.length)];
+        }
+        currentItem = item;
+
+        if (currentGameMode === 'shadows') {
+            title.textContent = "¿Quién soy?";
+            display.textContent = item.emoji;
+            display.classList.add('shadow-black');
+            speak("Mira la sombra, ¿quién soy?");
+            generateOptions(item, 'emoji');
+            
+        } else if (currentGameMode === 'sounds') {
+            title.textContent = "¿Quién hace este sonido?";
+            display.textContent = "🔊";
+            replayBtn.style.display = "block";
+            speak("¿Quién hace... " + item.sound + "?");
+            generateOptions(item, 'emoji');
+
+        } else if (currentGameMode === 'habitats') {
+            let isWater = Math.random() > 0.5;
+            let targetType = isWater ? "agua" : "tierra";
+            title.textContent = isWater ? "¿Quién vive en el agua?" : "¿Quién vive en la tierra?";
+            display.textContent = isWater ? "🌊" : "🌳";
+            speak(title.textContent);
+            let correctItem = db.find(x => x.type === targetType);
+            currentItem = correctItem; 
+            let wrongs = db.filter(x => x.type !== targetType).sort(() => 0.5 - Math.random()).slice(0, 2);
+            let options = [correctItem, ...wrongs].sort(() => 0.5 - Math.random());
+            renderButtons(options, 'emoji');
+
+        } else if (currentGameMode === 'counting') {
+            let count = Math.floor(Math.random() * 5) + 1;
+            title.textContent = "¿Cuántos hay?";
+            display.style.fontSize = "4rem"; 
+            display.innerHTML = Array(count).fill(item.emoji).join(" ");
+            display.classList.remove('big-display');
+            speak("Cuenta, ¿cuántos " + item.name + "s hay?");
+            for(let i=1; i<=5; i++){
+                let btn = document.createElement('div');
+                btn.className = 'card-btn';
+                btn.textContent = i;
+                btn.onclick = () => checkAnswer(i, count, "¡Muy bien! Hay " + count);
+                optsBox.appendChild(btn);
+            }
+
+        } else if (currentGameMode === 'colors') {
+            title.textContent = "¿De qué color soy?";
+            display.textContent = item.emoji;
+            speak("¿De qué color es el " + item.name + "?");
+            
+            let correctColor = item.color;
+            let allDbColors = Object.values(Colors);
+            let wrongs = allDbColors.filter(c => c !== correctColor).sort(()=>0.5-Math.random()).slice(0,2);
+            let opts = [correctColor, ...wrongs].sort(()=>0.5-Math.random());
+            
+            opts.forEach(color => {
+                let btn = document.createElement('div');
+                btn.className = 'color-blob';
+                btn.style.backgroundColor = color;
+                btn.style.cursor = 'pointer';
+                btn.onclick = () => {
+                    playBirdTweet();
+                    if(color === item.color) checkAnswer(true, true, "¡Sí, es color " + item.colorName + "!");
+                    else checkAnswer(false, true, "");
+                };
+                optsBox.appendChild(btn);
+            });
+
+        } else if (currentGameMode === 'food') {
+            title.textContent = "¿Qué come el " + item.name + "?";
+            display.textContent = item.emoji;
+            speak("¿Qué come el " + item.name + "?");
+            let correctFood = { emoji: item.food, name: item.foodName };
+            let otherFoods = db.filter(x => x.food !== item.food).map(x => ({emoji: x.food, name: x.foodName}));
+            let uniqueOthers = [...new Map(otherFoods.map(v => [v.emoji, v])).values()].sort(()=>0.5-Math.random()).slice(0,2);
+            let finalOpts = [correctFood, ...uniqueOthers].sort(()=>0.5-Math.random());
+            finalOpts.forEach(opt => {
+                let btn = document.createElement('div');
+                btn.className = 'card-btn';
+                btn.textContent = opt.emoji;
+                btn.onclick = () => {
+                    playBirdTweet();
+                    if(opt.emoji === item.food) checkAnswer(true, true, "¡Muy bien! Come " + opt.name);
+                    else checkAnswer(false, true, "");
+                };
+                optsBox.appendChild(btn);
+            });
+        }
+    }
+
+    function generateOptions(correctItem, displayKey) {
+        let incorrects = db.filter(x => x.name !== correctItem.name).sort(() => 0.5 - Math.random()).slice(0, 2);
+        let options = [correctItem, ...incorrects].sort(() => 0.5 - Math.random());
+        renderButtons(options, displayKey);
+    }
+
+    function renderButtons(list, key) {
+        const box = document.getElementById('options-box');
+        list.forEach(opt => {
+            let btn = document.createElement('div');
+            btn.className = 'card-btn';
+            btn.textContent = opt[key];
+            btn.onclick = () => {
+                if(opt.name === currentItem.name) checkAnswer(true, true, "¡Correcto, es el " + opt.name + "!");
+                else checkAnswer(false, true, "");
+            };
+            box.appendChild(btn);
+        });
+    }
+
+    function repeatQuestion() {
+        playBirdTweet();
+        if(currentGameMode === 'sounds') speak(currentItem.sound + ". ¿Quién hace " + currentItem.sound + "?");
+    }
+
+    function checkAnswer(isCorrect, dummy, successMsg) {
+        playBirdTweet();
+        if (isCorrect) {
+            speak(successMsg);
+            setTimeout(showVictoryModal, 3500);
+        } else {
+            speak("Inténtalo de nuevo");
+            document.getElementById('game-frame').style.borderColor = "red";
+            setTimeout(() => document.getElementById('game-frame').style.borderColor = "#D4A373", 500);
+        }
+    }
+
+    function showVictoryModal() {
+        const modal = document.getElementById('victory-modal');
+        modal.style.display = 'flex';
+        speak("¡Felicitaciones! ¡Has ganado!");
+    }
+
+    function closeModal() {
+        playBirdTweet();
+        document.getElementById('victory-modal').style.display = 'none';
+        loadNextLevel();
+    }
+
+    let memFirst = null, memSecond = null, memLock = false;
+    function startMemory() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('memory-screen').classList.add('active');
+        document.getElementById('exit-btn-global').style.display = 'none';
+        speak("Encuentra las parejas");
+        const board = document.getElementById('memory-board');
+        board.innerHTML = "";
+        let selection = db.slice(0, 6);
+        let cards = [...selection, ...selection].sort(() => 0.5 - Math.random());
+        cards.forEach(item => {
+            let card = document.createElement('div');
+            card.style = "background:#D4A373; border-radius:10px; height:80px; display:flex; justify-content:center; align-items:center; font-size:3rem; cursor:pointer; color:transparent; border: 3px solid #b08d55;";
+            card.textContent = item.emoji;
+            card.dataset.name = item.name;
+            card.onclick = () => {
+                playBirdTweet();
+                if(memLock || card === memFirst || card.style.backgroundColor === 'white') return;
+                card.style.backgroundColor = 'white'; card.style.color = 'black'; card.style.transform = "rotateY(180deg)"; card.style.transition = "0.3s";
+                if(!memFirst) memFirst = card;
+                else {
+                    memSecond = card; memLock = true;
+                    if(memFirst.dataset.name === memSecond.dataset.name) {
+                        speak("¡Pareja de " + item.name + "!");
+                        memFirst = null; memSecond = null; memLock = false; checkMemoryWin();
+                    } else {
+                        setTimeout(() => {
+                            memFirst.style.backgroundColor = '#D4A373'; memFirst.style.color = 'transparent'; memFirst.style.transform = "rotateY(0)";
+                            memSecond.style.backgroundColor = '#D4A373'; memSecond.style.color = 'transparent'; memSecond.style.transform = "rotateY(0)";
+                            memFirst = null; memSecond = null; memLock = false;
+                        }, 1000);
+                    }
+                }
+            };
+            board.appendChild(card);
+        });
+    }
+
+    function checkMemoryWin() {
+        const allCards = document.querySelectorAll('#memory-board div');
+        const allFlipped = Array.from(allCards).every(card => card.style.backgroundColor === 'white');
+        if(allFlipped) setTimeout(showVictoryModal, 500);
+    }
+</script>
+
+</body>
+</html>
